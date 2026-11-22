@@ -1,0 +1,67 @@
+# GitLab CI: build -> test -> package image -> GitOps promotion.
+# CI never runs `kubectl apply`: it only changes Git; ArgoCD/Flux pulls the change into the cluster.
+stages:
+  - build
+  - test
+  - package
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "-B --no-transfer-progress"
+  IMAGE: "$CI_REGISTRY_IMAGE"
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+
+default:
+  image: maven:3.9-eclipse-temurin-21
+  cache:
+    key:
+      files: [pom.xml]
+    paths: [.m2/repository]
+
+compile:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS compile
+
+unit-test:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS verify
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    paths: [target/banker-platform.jar]
+    expire_in: 1 week
+
+exercise-solutions:
+  stage: test
+  script:
+    - scripts/exercises.sh check-solutions
+
+validate-manifests:
+  stage: test
+  image:
+    name: registry.k8s.io/kubectl:v1.31.0
+    entrypoint: [""]
+  cache: []
+  script:
+    - kubectl kustomize k8s/overlays/dev > /dev/null
+    - kubectl kustomize k8s/overlays/prod > /dev/null
+
+docker-image:
+  stage: package
+  image: docker:27
+  services: [docker:27-dind]
+  cache: []
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -t "$IMAGE:$IMAGE_TAG" .
+    - docker push "$IMAGE:$IMAGE_TAG"
+
+# No deploy job and no user-defined tokens: the pipeline only uses GitLab's predefined variables.
+# Run the full stack locally with `docker compose up --build` (see README).

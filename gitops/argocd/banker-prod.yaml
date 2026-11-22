@@ -1,0 +1,18 @@
+# Prod: same manifests, different overlay; sync is manual (or automated after an approved MR).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: banker-platform-prod
+  namespace: argocd
+spec:
+  project: javabanker
+  source:
+    repoURL: https://github.com/marcomaggiotti/JavaBankerApp.git
+    targetRevision: main
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: banker-prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,32 @@
+package com.javabanker.challenges.__PKG__;
+
+import com.javabanker.domain.Transaction;
+import com.javabanker.streams.support.JsonSerdes;
+import com.javabanker.streams.support.SourceStreams;
+import com.javabanker.streams.support.TopologyContributor;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Produced;
+
+/**
+ * Challenge: __NAME__
+ * <p>
+ * Problem statement: TODO paste the statement here and list your assumptions.
+ * <ul>
+ *   <li>Input:  __INPUT_TOPIC__ (key = accountId, value = Transaction JSON)</li>
+ *   <li>Output: __OUTPUT_TOPIC__</li>
+ * </ul>
+ * Register as a @Bean in KafkaStreamsConfig to run it inside the application.
+ */
+public class __NAME__Topology implements TopologyContributor {
+
+    public static final String INPUT_TOPIC = "__INPUT_TOPIC__";
+    public static final String OUTPUT_TOPIC = "__OUTPUT_TOPIC__";
+
+    @Override
+    public void contribute(StreamsBuilder builder, SourceStreams sources) {
+        sources.stream(INPUT_TOPIC, JsonSerdes.of(Transaction.class))
+                // TODO implement: filter / mapValues / groupByKey / windowedBy / join / process ...
+                .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), JsonSerdes.of(Transaction.class)));
+    }
+}

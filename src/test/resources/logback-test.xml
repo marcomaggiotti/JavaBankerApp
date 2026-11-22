@@ -1,0 +1,7 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.apache.kafka.streams.processor.internals.StateDirectory" level="ERROR"/>
+    <logger name="kafka" level="WARN"/>
+    <logger name="org.apache.zookeeper" level="WARN"/>
+</configuration>

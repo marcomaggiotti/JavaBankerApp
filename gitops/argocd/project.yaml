@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: javabanker
+  namespace: argocd
+spec:
+  description: JavaBanker study platform
+  sourceRepos:
+    - https://github.com/marcomaggiotti/JavaBankerApp.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: banker-*
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
