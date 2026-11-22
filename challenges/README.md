@@ -3,7 +3,7 @@
 Each challenge follows the same loop: `scripts/new-challenge.sh <Name>` → write tests from the acceptance
 criteria → implement → discuss follow-ups. Input is always `bank.transactions.v1`
 (key = accountId, value = `Transaction` JSON) unless stated. Difficulty: ★ warm-up … ★★★★ senior.
-🏋️ = available as a hands-on exercise with starter code and tests in [../exercises](../exercises/README.md).
+🏋️ = solved as an exercise (solution, tests, plus starter code to practise) in [../exercises](../exercises/README.md).
 
 | # | Challenge | Concepts | Status |
 |---|---|---|---|

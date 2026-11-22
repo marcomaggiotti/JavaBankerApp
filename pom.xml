@@ -20,9 +20,10 @@
     <properties>
         <java.version>21</java.version>
         <archunit.version>1.3.0</archunit.version>
-        <!-- Exercise tests (@Tag("exercise")) fail until solved, so the normal build skips them.
-             Run them with scripts/exercises.sh -->
-        <exercise.excludedGroups>exercise</exercise.excludedGroups>
+        <!-- Exercises ship solved, so their tests (@Tag("exercise")) run in the normal build.
+             When practising from the starter code (scripts/exercises.sh start exNN) skip them with
+             mvn test -Dexercise.excludedGroups=exercise -->
+        <exercise.excludedGroups>none</exercise.excludedGroups>
     </properties>
 
     <dependencies>
