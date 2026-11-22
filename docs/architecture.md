@@ -55,10 +55,11 @@ Service in `k8s/base/service.yaml` provides stable pod DNS). Alternative: sink `
 Restarted pods find their RocksDB state on the volume and only replay the changelog tail.
 Standby replicas (`num.standby.replicas=1` in prod) make failover fast.
 
-### ADR-8 — GitOps deployment
-CI builds an immutable image tagged with the commit SHA and writes the tag into `k8s/overlays/dev`.
-ArgoCD (auto-sync, prune, self-heal) applies it. Prod promotion = reviewed MR to `k8s/overlays/prod`.
-CI has no cluster credentials → smaller attack surface, full audit trail in Git, easy rollback (`git revert`).
+### ADR-8 — Runs without tokens; Docker Compose is the default runtime
+`docker compose up --build` starts everything (Kafka, topics, app, Kafka UI, traffic generator) with no
+credentials or tokens. CI only builds, tests and pushes the image with GitLab's predefined `CI_REGISTRY_*`
+variables. The `k8s/` and `gitops/` manifests are study material for a cluster setup: there ArgoCD would
+sync Git into the cluster, and promotion would be a reviewed merge request changing the image tag.
 
 ### ADR-9 — JSON wire format
 Simple to read for study. In production prefer Avro/Protobuf + Schema Registry with compatibility rules

@@ -4,7 +4,6 @@ stages:
   - build
   - test
   - package
-  - deploy
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
@@ -59,20 +58,5 @@ docker-image:
     - docker build -t "$IMAGE:$IMAGE_TAG" .
     - docker push "$IMAGE:$IMAGE_TAG"
 
-# GitOps: bump the image tag in the dev overlay and push. ArgoCD (automated sync) deploys it.
-# Needs a project access token with write_repository in the masked variable GITOPS_TOKEN.
-promote-dev:
-  stage: deploy
-  image: registry.gitlab.com/gitlab-ci-utils/curl-jq:latest
-  cache: []
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $GITOPS_TOKEN
-  before_script:
-    - apk add --no-cache git kustomize || true
-  script:
-    - git config user.email "ci@example.com" && git config user.name "GitLab CI"
-    - cd k8s/overlays/dev && kustomize edit set image "banker-platform=$IMAGE:$IMAGE_TAG" && cd -
-    - git commit -am "chore(gitops): deploy $IMAGE_TAG to dev [skip ci]"
-    - git push "https://oauth2:${GITOPS_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" HEAD:$CI_DEFAULT_BRANCH
-
-# Prod promotion is a reviewed merge request changing k8s/overlays/prod (four-eyes principle).
+# No deploy job and no user-defined tokens: the pipeline only uses GitLab's predefined variables.
+# Run the full stack locally with `docker compose up --build` (see README).

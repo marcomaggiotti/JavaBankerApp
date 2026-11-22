@@ -25,11 +25,21 @@ It is the evolution of the original console app in [`Console/`](Console/) (depos
 
 ## Quick start
 
+Everything runs with one command and **no tokens or credentials**:
+
+```bash
+docker compose up --build
+```
+
+This starts Kafka, the app (http://localhost:8080), Kafka UI (http://localhost:8081) and a load
+generator that sends 200 random transactions once the app is ready. Send more with
+`docker compose run --rm load-generator`; stop and wipe data with `docker compose down -v`.
+
 | Goal | Command |
 |---|---|
 | Unit + topology tests (no broker, ~10 s) | `mvn test` |
 | + end-to-end test (embedded KRaft Kafka) | `mvn verify` |
-| Full local stack (Kafka, app, Kafka UI on :8081) | `docker compose up --build` (or `podman compose up --build`) |
+| Full local stack (Kafka, app, Kafka UI, traffic) | `docker compose up --build` (or `podman compose up --build`) |
 | Generate traffic | `python3 scripts/load_generator.py --count 200` |
 | Scaffold a new interview challenge | `scripts/new-challenge.sh MyChallenge` |
 | Render Kubernetes manifests | `kubectl kustomize k8s/overlays/dev` |
@@ -53,8 +63,8 @@ curl -s localhost:8080/api/accounts/acc-1/balance
 | Testing | `TopologyTestDriver` tests, `@WebMvcTest`, ArchUnit rules, `@EmbeddedKafka` end-to-end `*IT` |
 | Docker / Podman | `Dockerfile` (multi-stage, layered jar, non-root, OpenShift-friendly), `docker-compose.yml` |
 | Kubernetes / OpenShift | `k8s/base` + `k8s/overlays/{dev,prod}` (Kustomize, StatefulSet, probes, PDB, security context) |
-| CI/CD | `.gitlab-ci.yml` (primary), `.github/workflows/ci.yml` (alternative) |
-| GitOps | `gitops/argocd/*` (AppProject + Applications), `gitops/flux/*`, CI updates image tag in Git |
+| CI/CD | `.gitlab-ci.yml` (primary), `.github/workflows/ci.yml` (alternative) — build, test, image; no custom tokens |
+| GitOps | `gitops/argocd/*` (AppProject + Applications), `gitops/flux/*` (study material for a cluster setup) |
 | Software architecture | Hexagonal layout, enforced by `ArchitectureTest`; see [docs/architecture.md](docs/architecture.md) |
 | Python (optional) | `scripts/load_generator.py` |
 

@@ -6,6 +6,7 @@
 import argparse
 import json
 import random
+import time
 import urllib.error
 import urllib.request
 
@@ -24,13 +25,30 @@ def post(url: str, payload: dict) -> int:
         return e.code
 
 
+def wait_until_ready(url: str, timeout_s: int = 180) -> None:
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(f"{url}/actuator/health/readiness", timeout=5) as resp:
+                if resp.status == 200:
+                    return
+        except (urllib.error.URLError, OSError):
+            pass
+        print("waiting for the app to be ready...")
+        time.sleep(3)
+    raise SystemExit(f"app at {url} not ready after {timeout_s}s")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://localhost:8080")
     parser.add_argument("--count", type=int, default=100)
     parser.add_argument("--accounts", type=int, default=5)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--wait", action="store_true", help="wait for the app readiness endpoint first")
     args = parser.parse_args()
+    if args.wait:
+        wait_until_ready(args.url)
 
     rnd = random.Random(args.seed)
     stats: dict[int, int] = {}
@@ -46,6 +64,7 @@ def main() -> None:
         stats[status] = stats.get(status, 0) + 1
 
     print("HTTP status counts:", stats)
+    time.sleep(3)  # balances are eventually consistent: give the stream a moment to process
     for i in range(1, args.accounts + 1):
         try:
             with urllib.request.urlopen(f"{args.url}/api/accounts/acc-{i}/balance", timeout=5) as resp:

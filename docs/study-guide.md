@@ -104,7 +104,7 @@ security scanning (SAST, dependency, container). GitHub Actions, Jenkins, AWS Co
 ArgoCD: Application, AppProject, sync policies (prune, selfHeal), sync waves/hooks, ApplicationSet,
 app-of-apps. Flux: GitRepository, Kustomization, HelmRelease, image automation. Secrets: Sealed
 Secrets / SOPS / External Secrets. Promotion between environments.
-**Repo:** `gitops/argocd/*`, `gitops/flux/*`, `promote-dev` job.
+**Repo:** `gitops/argocd/*`, `gitops/flux/*`.
 **Exercise:** install ArgoCD in kind, apply `gitops/argocd/`, change the dev replica count via Git and watch it sync.
 
 **Q:** Push vs pull deployment? → pull (GitOps) keeps cluster credentials inside the cluster, gives drift
