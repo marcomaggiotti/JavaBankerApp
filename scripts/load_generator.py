@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Send random transactions to the banker-platform REST API (stdlib only).
 
-    python3 scripts/load_generator.py --url http://localhost:8080 --count 200 --accounts 5
+    python3 scripts/load_generator.py --url http://localhost:18080 --count 200 --accounts 5
 """
 import argparse
 import json
@@ -41,7 +41,7 @@ def wait_until_ready(url: str, timeout_s: int = 180) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", default="http://localhost:8080")
+    parser.add_argument("--url", default="http://localhost:18080", help="18080 = docker compose default")
     parser.add_argument("--count", type=int, default=100)
     parser.add_argument("--accounts", type=int, default=5)
     parser.add_argument("--seed", type=int, default=None)

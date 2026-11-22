@@ -31,9 +31,20 @@ Everything runs with one command and **no tokens or credentials**:
 docker compose up --build
 ```
 
-This starts Kafka, the app (http://localhost:8080), Kafka UI (http://localhost:8081) and a load
+This starts Kafka, the app (http://localhost:18080), Kafka UI (http://localhost:18081) and a load
 generator that sends 200 random transactions once the app is ready. Send more with
 `docker compose run --rm load-generator`; stop and wipe data with `docker compose down -v`.
+
+**Port already in use?** Host ports are configurable: copy `.env.example` to `.env` and change
+`APP_PORT`, `KAFKA_UI_PORT` or `KAFKA_PORT`, or set them inline:
+
+```bash
+APP_PORT=28080 docker compose up --build
+```
+
+Running the app outside Docker (`mvn spring-boot:run`) uses port 8080 by default; change it with
+`SERVER_PORT=28080 mvn spring-boot:run`, and point it at the compose Kafka with
+`KAFKA_BOOTSTRAP_SERVERS=localhost:19092`.
 
 | Goal | Command |
 |---|---|
@@ -46,12 +57,12 @@ generator that sends 200 random transactions once the app is ready. Send more wi
 | Render Kubernetes manifests | `kubectl kustomize k8s/overlays/dev` |
 
 ```bash
-curl -s -XPOST localhost:8080/api/transactions -H 'Content-Type: application/json' \
+curl -s -XPOST localhost:18080/api/transactions -H 'Content-Type: application/json' \
   -d '{"accountId":"acc-1","type":"DEPOSIT","amount":100.00,"currency":"EUR"}'
 ```
 
 ```bash
-curl -s localhost:8080/api/accounts/acc-1/balance
+curl -s localhost:18080/api/accounts/acc-1/balance
 ```
 
 ## Repository map (skill → where to look)
