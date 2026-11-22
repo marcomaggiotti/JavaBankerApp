@@ -3,18 +3,19 @@
 Each challenge follows the same loop: `scripts/new-challenge.sh <Name>` → write tests from the acceptance
 criteria → implement → discuss follow-ups. Input is always `bank.transactions.v1`
 (key = accountId, value = `Transaction` JSON) unless stated. Difficulty: ★ warm-up … ★★★★ senior.
+🏋️ = available as a hands-on exercise with starter code and tests in [../exercises](../exercises/README.md).
 
 | # | Challenge | Concepts | Status |
 |---|---|---|---|
 | 1 | Account balances with overdraft protection ★★★ | Processor API, state store, branching, IQ | ✅ `streams/topology/BalanceTopology` |
 | 2 | Withdrawal velocity fraud check ★★★ | tumbling windows, grace, suppress | ✅ `streams/topology/FraudDetectionTopology` |
 | 3 | Large-transaction alert ★ | stateless filter, Named processors | ✅ `challenges/largetransactionalert` |
-| 4 | Multi-currency normalisation ★★ | GlobalKTable join | ⬜ |
-| 5 | Daily account statement ★★★ | daily windows, aggregate, suppress, time zones | ⬜ |
-| 6 | Idempotent processing / dedup ★★★ | window store as TTL cache, transform | ⬜ |
+| 4 | Multi-currency normalisation ★★ | GlobalKTable join | 🏋️ [exercise ex03](../exercises/) |
+| 5 | Daily account statement ★★★ | daily windows, aggregate, suppress, time zones | 🏋️ [exercise ex05](../exercises/) |
+| 6 | Idempotent processing / dedup ★★★ | window store as TTL cache, transform | 🏋️ [exercise ex04](../exercises/) |
 | 7 | Transfers between accounts ★★★★ | flatMap, repartition, consistency | ⬜ |
-| 8 | Customer enrichment ★★ | KStream–KTable join, co-partitioning | ⬜ |
-| 9 | Dormant account detection ★★★★ | punctuators, wall-clock vs stream time | ⬜ |
+| 8 | Customer enrichment ★★ | KStream–KTable join, co-partitioning | 🏋️ [exercise ex02](../exercises/) |
+| 9 | Dormant account detection ★★★★ | punctuators, wall-clock vs stream time | 🏋️ [exercise ex06](../exercises/) |
 | 10 | Card session analytics ★★★ | session windows, merging | ⬜ |
 
 ---

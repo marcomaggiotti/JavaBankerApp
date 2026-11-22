@@ -36,6 +36,11 @@ unit-test:
     paths: [target/banker-platform.jar]
     expire_in: 1 week
 
+exercise-solutions:
+  stage: test
+  script:
+    - scripts/exercises.sh check-solutions
+
 validate-manifests:
   stage: test
   image:

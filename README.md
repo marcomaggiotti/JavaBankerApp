@@ -41,6 +41,7 @@ generator that sends 200 random transactions once the app is ready. Send more wi
 | + end-to-end test (embedded KRaft Kafka) | `mvn verify` |
 | Full local stack (Kafka, app, Kafka UI, traffic) | `docker compose up --build` (or `podman compose up --build`) |
 | Generate traffic | `python3 scripts/load_generator.py --count 200` |
+| Practise a coding exercise (starter + tests + solution) | `scripts/exercises.sh list` / `test ex03` |
 | Scaffold a new interview challenge | `scripts/new-challenge.sh MyChallenge` |
 | Render Kubernetes manifests | `kubectl kustomize k8s/overlays/dev` |
 
@@ -73,4 +74,5 @@ curl -s localhost:8080/api/accounts/acc-1/balance
 - [docs/study-guide.md](docs/study-guide.md) — topic-by-topic study plan with interview questions & answers
 - [docs/interview-playbook.md](docs/interview-playbook.md) — step-by-step method for take-home and live-coding challenges
 - [docs/architecture.md](docs/architecture.md) — design decisions and trade-offs (ADR style)
+- [exercises/README.md](exercises/README.md) — 6 hands-on coding exercises: statement, starter code, tests, reference solution
 - [challenges/README.md](challenges/README.md) — catalogue of 10 practice challenges (3 solved)

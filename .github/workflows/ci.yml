@@ -22,6 +22,8 @@ jobs:
           cache: maven
       - name: Build, unit + integration tests
         run: mvn -B --no-transfer-progress verify
+      - name: Reference solutions of the exercises pass
+        run: scripts/exercises.sh check-solutions
       - name: Validate Kubernetes manifests
         run: |
           kubectl kustomize k8s/overlays/dev > /dev/null
