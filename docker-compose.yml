@@ -10,6 +10,10 @@
 #   APP_PORT=28080 KAFKA_UI_PORT=28081 KAFKA_PORT=29093 docker compose up --build
 # or put them in a .env file next to this file (see .env.example).
 #
+# AI assistant (Spring AI): a local Ollama model, no API key. The ollama-pull service downloads the
+# model once (~2 GB, kept in a volume); until it finishes, POST /api/assistant answers 503.
+# Use Claude instead:  SPRING_AI_MODEL_CHAT=anthropic ANTHROPIC_API_KEY=... docker compose up --build
+#
 # The load-generator service sends random transactions once the app is ready, then exits.
 # Re-run it any time:  docker compose run --rm load-generator
 # Stop and wipe data:  docker compose down -v
@@ -52,6 +56,10 @@ services:
       - "${APP_PORT:-18080}:8080"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+      SPRING_AI_MODEL_CHAT: ${SPRING_AI_MODEL_CHAT:-ollama}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-not-set}
     volumes:
       - streams-state:/var/lib/kafka-streams
     healthcheck:
@@ -61,6 +69,26 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 12
+
+  ollama:
+    image: ollama/ollama:0.40.14
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ollama-pull:
+    image: ollama/ollama:0.40.14
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen2.5:3b}"]
+    restart: "no"
 
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
@@ -86,3 +114,4 @@ services:
 volumes:
   kafka-data:
   streams-state:
+  ollama-models:

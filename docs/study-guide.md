@@ -34,6 +34,19 @@ WebFlux, validation, `ProblemDetail`, Actuator (health groups, probes, Micromete
 external dependencies in liveness (cascade restarts).
 **Q:** JEE equivalents? → CDI (`@Inject`), JAX-RS (`@Path`), JPA, Bean Validation, MicroProfile Health/Config; Quarkus/Open Liberty.
 
+### Spring AI
+**Know:** `ChatClient` (fluent API, default system prompt), `ChatModel` providers selected with
+`spring.ai.model.chat`, tool calling (`@Tool`, the tool loop), structured output (`.entity(MyRecord.class)`),
+advisors (chat memory, RAG with a `VectorStore`), observability, and testing without a model.
+**Repo:** `adapter/out/ai`, `config/AssistantConfig`, `AnthropicAssistantContractTest`, `OllamaAssistantContractTest`.
+**Exercise:** add a `lastRejections()` tool backed by the rejected topic. Return structured output (`record Answer(String text, BigDecimal amount)`).
+
+**Q:** How do you stop an LLM from leaking other customers' data? → Give it no tool that can reach that data:
+bind tools to the authenticated account, never pass ids from the model's output to queries unchecked, and
+validate the input before the call.
+**Q:** How do you test LLM code in CI? → Unit-test the tools and use cases without a model, contract-test the
+client against a fake API, and keep a small evaluation set for real-model quality checks outside the unit build.
+
 ## 3. Kafka & Kafka Streams — weeks 2–3 (core of the role)
 **Kafka:** topics, partitions, offsets, consumer groups & rebalancing (cooperative sticky), replication,
 ISR, `acks=all` + `min.insync.replicas`, idempotent producer, transactions, compaction, retention, KRaft.
