@@ -1,10 +1,37 @@
 spring:
   application:
     name: banker-platform
+  # Optimization: every request runs on a virtual thread (Java 21). Blocking I/O such as waiting for
+  # the Kafka ack or the LLM response no longer pins a platform thread. See docs/spring-optimization.md
+  threads:
+    virtual:
+      enabled: true
+  # Spring AI: the chat provider is chosen at runtime. ollama = local model, no token (default);
+  # anthropic = Claude, needs ANTHROPIC_API_KEY; none = assistant disabled (returns 503).
+  ai:
+    model:
+      chat: ${SPRING_AI_MODEL_CHAT:ollama}
+      embedding: none
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:qwen2.5:3b}
+          temperature: 0.2
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:not-set}
+      chat:
+        options:
+          model: ${ANTHROPIC_MODEL:claude-opus-5-5}
+          max-tokens: 4096
+          # No temperature: current Claude models reject sampling parameters (removed in AnthropicCompatibilityConfig)
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       acks: all
+      # Optimization: small linger + compression = bigger, fewer requests to the broker
+      compression-type: lz4
+      batch-size: 65536
       properties:
         enable.idempotence: true
         linger.ms: 5
@@ -19,6 +46,8 @@ spring:
         default.deserialization.exception.handler: org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
         num.standby.replicas: ${KAFKA_STREAMS_STANDBY_REPLICAS:0}
         commit.interval.ms: 1000
+        # Optimization: one stream thread per input partition owned by this instance
+        num.stream.threads: ${KAFKA_STREAMS_THREADS:1}
 
 banker:
   topics:
@@ -34,8 +63,14 @@ banker:
     window: 1m
     grace: 10s
 
+  assistant:
+    max-question-length: 500
+
 server:
   shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 2KB
 
 management:
   endpoints:

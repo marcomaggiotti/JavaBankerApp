@@ -1,6 +1,7 @@
 package com.javabanker.adapter.in.web;
 
 import com.javabanker.application.port.out.BalanceRepository.BalanceUnavailableException;
+import com.javabanker.application.port.out.BankAssistant.AssistantUnavailableException;
 import com.javabanker.application.port.out.TransactionPublisher.PublishFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -17,7 +18,7 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
-    @ExceptionHandler({PublishFailedException.class, BalanceUnavailableException.class})
+    @ExceptionHandler({PublishFailedException.class, BalanceUnavailableException.class, AssistantUnavailableException.class})
     ProblemDetail temporarilyUnavailable(RuntimeException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     }
