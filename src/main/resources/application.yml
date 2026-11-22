@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: banker-platform
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        linger.ms: 5
+    streams:
+      application-id: ${KAFKA_STREAMS_APPLICATION_ID:banker-platform}
+      state-dir: ${KAFKA_STREAMS_STATE_DIR:${java.io.tmpdir}/kafka-streams}
+      replication-factor: ${banker.topic-settings.replication-factor}
+      properties:
+        processing.guarantee: exactly_once_v2
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.deserialization.exception.handler: org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
+        num.standby.replicas: ${KAFKA_STREAMS_STANDBY_REPLICAS:0}
+        commit.interval.ms: 1000
+
+banker:
+  topics:
+    transactions: bank.transactions.v1
+    balances: bank.balances.v1
+    rejected: bank.transactions.rejected.v1
+    fraud-alerts: bank.fraud-alerts.v1
+  topic-settings:
+    partitions: ${BANKER_TOPIC_PARTITIONS:3}
+    replication-factor: ${BANKER_TOPIC_REPLICATION_FACTOR:1}
+  fraud:
+    withdrawal-threshold: 3
+    window: 1m
+    grace: 10s
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+      group:
+        readiness:
+          include: readinessState,kafkaStreams

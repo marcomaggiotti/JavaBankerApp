@@ -1,0 +1,73 @@
+# StatefulSet rather than Deployment: Kafka Streams keeps RocksDB state locally. A stable identity +
+# persistent volume means a restarted pod reuses its state instead of replaying the whole changelog.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: banker-platform
+spec:
+  serviceName: banker-platform-headless
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8080"
+    spec:
+      terminationGracePeriodSeconds: 60   # let Kafka Streams close cleanly and commit
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: banker-platform
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: banker-platform
+          env:
+            - name: KAFKA_STREAMS_STATE_DIR
+              value: /var/lib/kafka-streams
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/kafka-streams
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: state
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,0 +1,37 @@
+package com.javabanker.challenges.__PKG__;
+
+import com.javabanker.domain.Transaction;
+import com.javabanker.support.TopologyTestSupport;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/** Write the acceptance criteria as tests FIRST, then make them green. */
+class __NAME__TopologyTest extends TopologyTestSupport {
+
+    private TestInputTopic<String, Transaction> in;
+    private TestOutputTopic<String, Transaction> out;
+
+    @BeforeEach
+    void setUp() {
+        start(new __NAME__Topology());
+        in = input(__NAME__Topology.INPUT_TOPIC, Transaction.class);
+        out = output(__NAME__Topology.OUTPUT_TOPIC, Transaction.class);
+    }
+
+    @Test
+    void happyPath() {
+        in.pipeInput("acc-1", deposit("acc-1", "10.00"));
+
+        assertThat(out.readValuesToList()).hasSize(1);
+    }
+
+    @Test
+    @Disabled("TODO: edge cases - empty/null values, late events, other keys, boundaries")
+    void edgeCases() {
+    }
+}

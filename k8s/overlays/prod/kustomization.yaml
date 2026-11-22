@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: banker-prod
+resources:
+  - ../../base
+  - namespace.yaml
+  - pdb.yaml
+patches:
+  - target: { kind: StatefulSet, name: banker-platform }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+images:
+  - name: banker-platform
+    newName: registry.example.com/javabanker/banker-platform
+    newTag: "0.1.0"  # promoted via merge request into this file

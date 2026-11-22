@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: banker-dev
+resources:
+  - ../../base
+  - namespace.yaml
+patches:
+  - target: { kind: StatefulSet, name: banker-platform }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target: { kind: ConfigMap, name: banker-platform }
+    patch: |-
+      - op: replace
+        path: /data/BANKER_TOPIC_REPLICATION_FACTOR
+        value: "1"
+      - op: replace
+        path: /data/KAFKA_STREAMS_STANDBY_REPLICAS
+        value: "0"
+images:
+  - name: banker-platform
+    newName: registry.example.com/javabanker/banker-platform
+    newTag: latest   # updated by CI (GitOps promotion), never by hand
