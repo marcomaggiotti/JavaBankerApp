@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Coding-challenge exercises: statement + starter code + tests + reference solution.
 #
+# Exercises ship SOLVED: src/main contains the reference solutions.
+#
 #   scripts/exercises.sh list               list exercises
-#   scripts/exercises.sh start ex03         (re)set src/main to the starter code (your changes are lost!)
-#   scripts/exercises.sh test ex03          run the exercise's tests (red until you solve it)
-#   scripts/exercises.sh solve ex03         replace your code with the reference solution
+#   scripts/exercises.sh test ex03          run the exercise's tests
+#   scripts/exercises.sh start ex03         practise: replace the solution with the starter code (red tests)
+#   scripts/exercises.sh solve ex03         put the reference solution back (your changes are lost!)
 #   scripts/exercises.sh diff ex03          compare your code with the reference solution
-#   scripts/exercises.sh check-solutions    verify that every reference solution passes (CI), then restore starters
+#   scripts/exercises.sh check-solutions    verify that every reference solution passes (CI)
 #
 set -euo pipefail
 
@@ -14,7 +16,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXERCISES="$ROOT/exercises"
 MAIN_PKG="$ROOT/src/main/java/com/javabanker/exercises"
 
-usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 exercise_dir() {
   local id="$1" dir
@@ -50,6 +52,7 @@ case "$cmd" in
     install_variant "$id" starter
     echo "Starter code for $id installed in src/main/java/com/javabanker/exercises/$id"
     echo "Read $(exercise_dir "$id")/README.md, then: $0 test $id"
+    echo "While practising, skip exercise tests in the full build: mvn test -Dexercise.excludedGroups=exercise"
     ;;
   test)
     [[ -n "$id" ]] || usage
@@ -63,15 +66,13 @@ case "$cmd" in
   solve)
     [[ -n "$id" ]] || usage
     install_variant "$id" solution
-    echo "Reference solution for $id installed. Use '$0 start $id' to try again from scratch."
+    echo "Reference solution for $id installed (the default state)."
     ;;
   diff)
     [[ -n "$id" ]] || usage
     diff -ru "$(exercise_dir "$id")/solution" "$MAIN_PKG/$id" || true
     ;;
   check-solutions)
-    restore() { for d in "$EXERCISES"/ex*/; do install_variant "$(basename "$d" | cut -c1-4)" starter; done; }
-    trap restore EXIT
     for d in "$EXERCISES"/ex*/; do install_variant "$(basename "$d" | cut -c1-4)" solution; done
     run_tests "com.javabanker.exercises.**"
     echo "✅ all reference solutions pass"

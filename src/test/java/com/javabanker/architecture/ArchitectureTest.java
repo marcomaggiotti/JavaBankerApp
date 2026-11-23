@@ -28,4 +28,9 @@ class ArchitectureTest {
     static final ArchRule adaptersDoNotTalkToEachOther = noClasses()
             .that().resideInAPackage("..adapter.in..")
             .should().dependOnClassesThat().resideInAPackage("..adapter.out..");
+
+    @ArchTest
+    static final ArchRule productionCodeDoesNotDependOnStudyMaterial = noClasses()
+            .that().resideInAnyPackage("..domain..", "..application..", "..adapter..", "..streams..", "..config..")
+            .should().dependOnClassesThat().resideInAnyPackage("..exercises..", "..interview..", "..challenges..");
 }

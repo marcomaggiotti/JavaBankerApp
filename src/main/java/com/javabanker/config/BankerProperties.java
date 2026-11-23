@@ -8,9 +8,12 @@ import java.time.Duration;
 
 /** Type-safe configuration bound from {@code banker.*} (application.yml / env vars / ConfigMap). */
 @ConfigurationProperties("banker")
-public record BankerProperties(Topics topics, TopicSettings topicSettings, Fraud fraud) {
+public record BankerProperties(Topics topics, TopicSettings topicSettings, Fraud fraud, Assistant assistant) {
 
     public record TopicSettings(@DefaultValue("3") int partitions, @DefaultValue("1") short replicationFactor) {
+    }
+
+    public record Assistant(@DefaultValue("500") int maxQuestionLength) {
     }
 
     public record Fraud(

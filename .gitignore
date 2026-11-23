@@ -7,3 +7,4 @@ target/
 /tmp/
 kafka-streams-state/
 __pycache__/
+.env

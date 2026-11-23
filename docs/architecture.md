@@ -15,7 +15,10 @@ com.javabanker
 ├── streams/
 │   ├── support/       the challenge framework: TopologyContributor, SourceStreams, JsonSerdes, Topics
 │   └── topology/      Kafka Streams sub-topologies
+├── adapter/out/ai/    Spring AI assistant (ChatClient + tools bound to one account)
 ├── challenges/        one package per interview challenge
+├── exercises/         solved coding exercises (ex01–ex09)
+├── interview/         Java coding-interview answers (tested)
 └── config/            Spring wiring (composition root)
 ```
 
@@ -64,6 +67,20 @@ sync Git into the cluster, and promotion would be a reviewed merge request chang
 ### ADR-9 — JSON wire format
 Simple to read for study. In production prefer Avro/Protobuf + Schema Registry with compatibility rules
 (BACKWARD for consumers-first upgrades). `FAIL_ON_UNKNOWN_PROPERTIES=false` already gives tolerant readers.
+
+### ADR-10: The LLM is an outbound port, its tools are scoped to the caller
+The assistant is `BankAssistant` (port) implemented with Spring AI (`adapter.out.ai`). The provider is
+configuration (`spring.ai.model.chat`: ollama by default, so no token is needed; anthropic or none). The model
+gets facts only through `@Tool` methods that call existing use cases, and the tool object is created per request
+and bound to one account. **Why:** the core stays testable without a model, the provider can change without
+code changes, and prompt injection can't reach other accounts. Startup never depends on the LLM: if it's down,
+the endpoint returns 503. Contract tests run the real Spring AI clients against fake provider APIs.
+
+### ADR-11: Startup optimized with a CDS archive, not native image
+A training run at image build (`-Dspring.context.exit=onRefresh`) records a CDS archive: startup went from
+~3.5 s to ~2.3 s on a dev machine. A GraalVM native image would start faster still, but it costs long builds,
+reflection configuration for Kafka Streams, RocksDB and Jackson, and JIT peak performance for a long-running
+stream processor.
 
 ## Known limitations (good to mention proactively in an interview)
 - Single currency per account; FX handled in challenge 4.

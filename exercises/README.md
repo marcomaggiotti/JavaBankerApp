@@ -1,13 +1,15 @@
 # Coding-challenge exercises
 
-Six timed exercises in the style of real interview tasks. Each one has:
+Nine exercises in the style of real interview tasks, **already solved**: the reference solutions are
+the code in `src/main` and their tests run in every build. Each one has:
 
 | | Where |
 |---|---|
 | Task statement, acceptance criteria, hints, follow-up questions | `exercises/exNN-*/README.md` |
-| Starter code you edit (compiles, throws `TODO`) | `src/main/java/com/javabanker/exercises/exNN/` |
-| Tests = the acceptance criteria (red until solved) | `src/test/java/com/javabanker/exercises/exNN/` |
-| Reference solution (don't peek too early) | `exercises/exNN-*/solution/` |
+| Solved code (what the build compiles and tests) | `src/main/java/com/javabanker/exercises/exNN/` |
+| Tests = the acceptance criteria | `src/test/java/com/javabanker/exercises/exNN/` |
+| Reference solution (copy kept for `solve` / `diff`) | `exercises/exNN-*/solution/` |
+| Starter code (`TODO`s, or slow code for ex07–ex09), to re-do the exercise yourself | `exercises/exNN-*/starter/` |
 
 | # | Exercise | Skills | Time |
 |---|---|---|---|
@@ -18,29 +20,44 @@ Six timed exercises in the style of real interview tasks. Each one has:
 | [ex05](ex05-daily-statement/README.md) | Daily statement ★★★ | tumbling windows, grace, `suppress`, late events | 60 min |
 | [ex06](ex06-dormant-accounts/README.md) | Dormant accounts ★★★★ | punctuators, wall-clock vs stream time | 75 min |
 
+**Spring optimization challenges.** Here the starter is *working but slow* code, and the tests fail on
+performance criteria (remote call counts, latency) until you optimize it without changing behaviour:
+
+| # | Exercise | Skills | Time |
+|---|---|---|---|
+| [ex07](ex07-caching/README.md) | Caching a slow remote call ★★ | Spring Cache, Caffeine, proxy self-invocation trap | 45 min |
+| [ex08](ex08-parallel-calls/README.md) | Parallelise independent calls ★★★ | `CompletableFuture`, virtual threads, timeouts, graceful degradation | 45 min |
+| [ex09](ex09-n-plus-one/README.md) | The N+1 problem ★★ | bulk loading, chunking, JPA fetch strategies | 30 min |
+
+More optimization techniques, with before/after examples, are in [../docs/spring-optimization.md](../docs/spring-optimization.md).
+
 ## Workflow
 
+Study a solution: read the README, then the code in `src/main/java/com/javabanker/exercises/exNN/`
+and its tests, and run them:
+
 ```bash
-scripts/exercises.sh list
+scripts/exercises.sh test ex02
+```
+
+Practise from scratch: swap the solution for the starter code (the tests go red), then make them green:
+
+```bash
+scripts/exercises.sh start ex02
 ```
 
 ```bash
-scripts/exercises.sh test ex02      # red: read the README, then make the tests green
+scripts/exercises.sh diff ex02
 ```
+
+Put the reference solution back (this overwrites your attempt):
 
 ```bash
-scripts/exercises.sh diff ex02      # compare with the reference solution when done
+scripts/exercises.sh solve ex02
 ```
 
-```bash
-scripts/exercises.sh start ex02     # reset to the starter code and practise again
-```
-
-`scripts/exercises.sh solve ex02` installs the reference solution. `scripts/exercises.sh check-solutions`
-verifies that all solutions pass (CI runs it), then restores the starters.
-
-The exercise tests are tagged `@Tag("exercise")` and skipped by a normal `mvn test` / `mvn verify`, so
-unsolved exercises never break the build.
+While an exercise is in starter state, the full build fails on its tests. Skip them with
+`mvn test -Dexercise.excludedGroups=exercise`, or `solve` before committing.
 
 ## How to practise like the real interview
 1. Set a timer for the time in the table.
