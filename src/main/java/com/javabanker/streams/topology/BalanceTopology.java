@@ -41,6 +41,16 @@ public class BalanceTopology implements TopologyContributor {
         this.topics = topics;
     }
 
+    /**
+     * Builds the balance pipeline. It shows three kinds of lambda:
+     * <ol>
+     *   <li>a <b>supplier</b> {@code () -> new BalanceProcessor(..)}: no parameters, returns a new object;</li>
+     *   <li>a <b>predicate</b> {@code (accountId, outcome) -> outcome.isAccepted()}: returns a boolean;</li>
+     *   <li>a <b>consumer</b> {@code accepted -> accepted...}: receives a value and returns nothing.</li>
+     * </ol>
+     * plus a <b>method reference</b> {@code TransactionOutcome::balance}, a shorter way to write the
+     * lambda {@code outcome -> outcome.balance()}.
+     */
     @Override
     public void contribute(StreamsBuilder builder, SourceStreams sources) {
         builder.addStateStore(Stores.keyValueStoreBuilder(
@@ -48,14 +58,21 @@ public class BalanceTopology implements TopologyContributor {
 
         KStream<String, TransactionOutcome> outcomes = sources
                 .stream(topics.transactions(), transactionSerde)
+                // ProcessorSupplier as a lambda: Kafka Streams calls it once PER TASK (one per partition),
+                // so every task gets its own BalanceProcessor instance with its own state. Passing one shared
+                // "new BalanceProcessor(..)" object instead would be a bug: tasks would share mutable state.
                 .process(() -> new BalanceProcessor(BALANCE_STORE), Named.as("apply-transaction"), BALANCE_STORE);
 
         outcomes.split(Named.as("outcome-"))
+                // Predicate: records for which it returns true go to this branch, the rest continue below.
                 .branch((accountId, outcome) -> outcome.isAccepted(),
+                        // Consumer<KStream>: the lambda receives the branch's sub-stream and says where it goes.
                         Branched.withConsumer(accepted -> accepted
+                                // Method reference = "outcome -> outcome.balance()". mapValues keeps the key.
                                 .mapValues(TransactionOutcome::balance)
                                 .to(topics.balances(), Produced.with(Serdes.String(), balanceSerde)),
                                 "accepted"))
+                // Everything the predicate rejected: the parameter name "rejected" is our choice, any name works.
                 .defaultBranch(Branched.withConsumer(rejected -> rejected
                                 .to(topics.rejected(), Produced.with(Serdes.String(), outcomeSerde)),
                         "rejected"));

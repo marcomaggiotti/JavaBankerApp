@@ -44,9 +44,23 @@ public class FraudDetectionTopology implements TopologyContributor {
         this.grace = grace;
     }
 
+    /**
+     * Builds the pipeline. Almost every DSL operation takes a <b>lambda</b>: a short anonymous function
+     * that Kafka Streams calls once per record. Reading guide for the lambdas below:
+     * <ul>
+     *   <li>{@code (accountId, tx) -> ...}: two parameters, because a Kafka record has a key and a value.
+     *       Their types are inferred by the compiler from the stream type {@code KStream<String, Transaction>}.</li>
+     *   <li>{@code filter} expects a {@link org.apache.kafka.streams.kstream.Predicate} (returns boolean).</li>
+     *   <li>{@code map} expects a {@link org.apache.kafka.streams.kstream.KeyValueMapper} (returns a new key/value).</li>
+     * </ul>
+     * Lambdas only <i>describe</i> the processing here; nothing runs until the topology is started.
+     */
     @Override
     public void contribute(StreamsBuilder builder, SourceStreams sources) {
         sources.stream(topics.transactions(), JsonSerdes.of(Transaction.class))
+                // Predicate<String, Transaction>: keep a record only when the lambda returns true.
+                // "tx != null" comes first: && short-circuits, so tx.type() is never called on null
+                // (null values = tombstones or unreadable records).
                 .filter((accountId, tx) -> tx != null && tx.type() == TransactionType.WITHDRAWAL)
                 .groupByKey(Grouped.with(Serdes.String(), JsonSerdes.of(Transaction.class)))
                 .windowedBy(TimeWindows.ofSizeAndGrace(windowSize, grace))
@@ -55,7 +69,13 @@ public class FraudDetectionTopology implements TopologyContributor {
                         .withValueSerde(Serdes.Long()))
                 .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded()))
                 .toStream()
+                // After windowing the key is a Windowed<String> (account + time window) and the value is the count.
+                // The lambda reads the field "threshold": lambdas can use fields and effectively-final
+                // variables of the enclosing scope (they "capture" them).
                 .filter((window, count) -> count >= threshold)
+                // KeyValueMapper: returns a NEW key and value. Here the key goes back from Windowed<String>
+                // to the plain accountId. Changing the key with map() would make a later stateful operation
+                // repartition; when only the value changes, prefer mapValues() (no repartition).
                 .map((window, count) -> KeyValue.pair(window.key(), new FraudAlert(
                         window.key(), RULE, count, window.window().startTime(), window.window().endTime())))
                 .to(topics.fraudAlerts(), Produced.with(Serdes.String(), JsonSerdes.of(FraudAlert.class)));

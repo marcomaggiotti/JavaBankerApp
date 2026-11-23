@@ -37,6 +37,25 @@ class TransactionController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(TransactionResponse.pending(tx));
     }
 
+    /**
+     * Turns an {@code Optional<AccountBalance>} into an HTTP response without any {@code if}:
+     * <ul>
+     *   <li>{@code map(BalanceResponse::from)}: <b>static method reference</b>, the same as
+     *       {@code balance -> BalanceResponse.from(balance)}. Runs only if the Optional has a value.</li>
+     *   <li>{@code map(ResponseEntity::ok)}: the same, giving {@code Optional<ResponseEntity<BalanceResponse>>}.</li>
+     *   <li>{@code orElseGet(() -> ...)}: a <b>Supplier</b> called only when the Optional is empty.
+     *       {@code orElse(x)} would build the 404 response every time, even when it isn't used,
+     *       because its argument is evaluated before the call.</li>
+     * </ul>
+     * The imperative equivalent:
+     * <pre>{@code
+     * Optional<AccountBalance> balance = getBalance.balanceOf(accountId);
+     * if (balance.isPresent()) {
+     *     return ResponseEntity.ok(BalanceResponse.from(balance.get()));
+     * }
+     * return ResponseEntity.notFound().build();
+     * }</pre>
+     */
     @GetMapping("/accounts/{accountId}/balance")
     ResponseEntity<BalanceResponse> balance(@PathVariable String accountId) {
         return getBalance.balanceOf(accountId)

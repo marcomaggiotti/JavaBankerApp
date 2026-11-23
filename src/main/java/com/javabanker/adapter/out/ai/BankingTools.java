@@ -28,8 +28,11 @@ class BankingTools {
     String getBalance() {
         try {
             return getBalance.balanceOf(accountId)
+                    // Function<AccountBalance, String> as a lambda: converts the balance into text for the LLM.
+                    // A one-expression lambda needs no braces and no "return".
                     .map(b -> "balance=%s %s, transactions=%d, updatedAt=%s".formatted(
                             b.balance().toPlainString(), b.currency(), b.transactionCount(), b.updatedAt()))
+                    // orElse (not orElseGet) is fine here: the fallback is a constant String, so it costs nothing.
                     .orElse("No balance yet: the account has no processed transactions.");
         } catch (BalanceUnavailableException e) {
             return "The balance is temporarily unavailable. Ask the customer to retry in a moment.";
@@ -39,10 +42,18 @@ class BankingTools {
     @Tool(description = "Explains the reasons why the bank can reject a transaction.")
     String rejectionReasons() {
         return Arrays.stream(RejectionReason.values())
+                // Stream.map with a lambda: each enum constant r becomes "NAME: explanation".
                 .map(r -> r + ": " + explain(r))
+                // Collectors.joining concatenates all the Strings with a separator.
                 .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * NOT a lambda: {@code case X -> value} is the arrow form of a <b>switch expression</b> (Java 14+).
+     * It shares the {@code ->} symbol with lambdas but means "this case yields this value":
+     * no fall-through, no {@code break}. Over an enum the compiler checks that every constant is
+     * covered, so adding a new RejectionReason without an explanation fails the build.
+     */
     private static String explain(RejectionReason reason) {
         return switch (reason) {
             case INSUFFICIENT_FUNDS -> "the withdrawal is larger than the current balance (no overdraft allowed)";

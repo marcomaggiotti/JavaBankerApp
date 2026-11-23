@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Q: "Implement an LRU cache with O(1) get and put."
  * A: LinkedHashMap in access order keeps a doubly linked list over a hash table; removeEldestEntry
- * evicts the least recently used entry. (From scratch: HashMap<K, Node> + your own doubly linked list.)
+ * evicts the least recently used entry. (From scratch: {@code HashMap<K, Node>} + your own doubly linked list.)
  * Not thread-safe: wrap with a lock, or use Caffeine in production.
  */
 public class LruCache<K, V> {

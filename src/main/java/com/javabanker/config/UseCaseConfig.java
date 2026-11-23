@@ -23,6 +23,9 @@ public class UseCaseConfig {
 
     @Bean
     SubmitTransactionUseCase submitTransactionUseCase(TransactionPublisher publisher, Clock clock) {
+        // Supplier<String> as a lambda: "() ->" means no parameters; the value is computed each time get() is called.
+        // Injecting the id generator (instead of calling UUID.randomUUID() inside the service) lets the unit test
+        // pass "() -> \"tx-42\"" and get predictable ids: lambdas make dependencies easy to replace.
         return new SubmitTransactionService(publisher, clock, () -> UUID.randomUUID().toString());
     }
 

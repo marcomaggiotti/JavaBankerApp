@@ -21,6 +21,9 @@ public class AssistantConfig {
     BankAssistant bankAssistant(ObjectProvider<ChatClient.Builder> chatClientBuilder, GetBalanceUseCase getBalance) {
         ChatClient.Builder builder = chatClientBuilder.getIfAvailable();
         if (builder == null) {
+            // BankAssistant has a single abstract method, answer(accountId, question), so a lambda can
+            // implement it directly: no class needed for this tiny "always unavailable" fallback.
+            // A lambda body may throw instead of returning: the method then always fails (here: HTTP 503).
             return (accountId, question) -> {
                 throw new BankAssistant.AssistantUnavailableException(
                         "No chat model configured (spring.ai.model.chat=none)", null);

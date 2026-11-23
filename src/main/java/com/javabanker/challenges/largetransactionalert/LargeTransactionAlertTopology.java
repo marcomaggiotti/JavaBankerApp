@@ -42,6 +42,9 @@ public class LargeTransactionAlertTopology implements TopologyContributor {
     @Override
     public void contribute(StreamsBuilder builder, SourceStreams sources) {
         sources.stream(INPUT_TOPIC, JsonSerdes.of(Transaction.class))
+                // Predicate lambda. BigDecimal has no ">=" operator, so compareTo is used:
+                // a.compareTo(b) >= 0 means a >= b. "threshold" is a field captured by the lambda.
+                // The "accountId" parameter is unused but must be declared: the Predicate takes (key, value).
                 .filter((accountId, tx) -> tx != null && tx.amount().compareTo(threshold) >= 0,
                         Named.as("large-transaction-filter"))
                 .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), JsonSerdes.of(Transaction.class)));

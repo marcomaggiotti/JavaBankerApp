@@ -31,7 +31,23 @@ public final class JsonSerdes {
         return Serdes.serdeFrom(serializer(), deserializer(type));
     }
 
+    /**
+     * Returns a Kafka {@link Serializer} written as a <b>lambda</b>.
+     * <p>
+     * This works because {@code Serializer} is a <i>functional interface</i> in practice: it has exactly one
+     * abstract method, {@code byte[] serialize(String topic, T data)} ({@code configure} and {@code close}
+     * have default implementations). Any interface with a single abstract method can be implemented
+     * with a lambda. The equivalent pre-Java-8 anonymous class is:
+     * <pre>{@code
+     * return new Serializer<T>() {
+     *     @Override
+     *     public byte[] serialize(String topic, T data) { ... }
+     * };
+     * }</pre>
+     * A multi-line lambda uses braces and an explicit {@code return}, like a method body.
+     */
     public static <T> Serializer<T> serializer() {
+        // (topic, data): the parameters of Serializer.serialize; their types come from the return type.
         return (topic, data) -> {
             if (data == null) {
                 return null;
@@ -44,6 +60,12 @@ public final class JsonSerdes {
         };
     }
 
+    /**
+     * Same idea as {@link #serializer()}: {@code Deserializer.deserialize(String, byte[])} implemented as a
+     * lambda. The lambda uses the parameter {@code type} of the enclosing method; this is allowed because
+     * {@code type} is <i>effectively final</i> (never reassigned). Each call to this method returns a new
+     * lambda that has captured its own {@code type}.
+     */
     public static <T> Deserializer<T> deserializer(Class<T> type) {
         return (topic, bytes) -> {
             if (bytes == null) {

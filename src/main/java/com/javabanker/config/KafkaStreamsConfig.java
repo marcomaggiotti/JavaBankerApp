@@ -33,6 +33,10 @@ public class KafkaStreamsConfig {
     @Bean
     SourceStreams bankerTopology(StreamsBuilder builder, List<TopologyContributor> contributors) {
         SourceStreams sources = new SourceStreams(builder);
+        // Iterable.forEach takes a Consumer<TopologyContributor>: the lambda runs once per element.
+        // It is the functional form of: for (TopologyContributor c : contributors) { c.contribute(builder, sources); }
+        // "builder" and "sources" are local variables captured by the lambda; this is allowed because they
+        // are effectively final (assigned once). Reassigning them afterwards would not compile.
         contributors.forEach(contributor -> contributor.contribute(builder, sources));
         return sources;
     }

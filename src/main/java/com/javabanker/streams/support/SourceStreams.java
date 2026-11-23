@@ -23,9 +23,25 @@ public final class SourceStreams {
         this.builder = builder;
     }
 
+    /**
+     * Returns the shared stream for {@code topic}, creating it on the first call.
+     * <p>
+     * {@link Map#computeIfAbsent} takes a {@code Function<String, KStream>}: the lambda {@code t -> ...}
+     * is called <b>only if the key is missing</b>, and its result is stored in the map. This replaces
+     * the classic "check, create, put" pattern:
+     * <pre>{@code
+     * KStream<String, ?> stream = streams.get(topic);
+     * if (stream == null) {
+     *     stream = builder.stream(topic, ...);
+     *     streams.put(topic, stream);
+     * }
+     * }</pre>
+     */
     @SuppressWarnings("unchecked")
     public <V> KStream<String, V> stream(String topic, Serde<V> valueSerde) {
         return (KStream<String, V>) streams.computeIfAbsent(
+                // "t" is the missing key (equal to topic). Using the parameter rather than capturing "topic"
+                // is the idiomatic style, and avoids accidentally capturing the wrong variable.
                 topic, t -> builder.stream(t, Consumed.with(Serdes.String(), valueSerde)));
     }
 }
